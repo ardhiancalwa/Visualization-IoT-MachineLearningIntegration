@@ -24,7 +24,7 @@ def on_message(client, userdata, msg):
     global message_count
     message_count += 1
     payload = msg.payload.decode()
-    print(f"📥 Message {message_count}: {payload[:100]}...")  # Show first 100 chars
+    print(f"📥 Message {message_count}: {payload[:100]}...")  
 
 def on_disconnect(client, userdata, rc):
     global connected
@@ -38,13 +38,11 @@ print(f"Broker: {MQTT_BROKER}:{MQTT_PORT}")
 print(f"Topic: {MQTT_TOPIC}")
 print("-" * 60)
 
-# Create client
 client = mqtt.Client(client_id=f"test_client_{int(time.time())}")
 client.on_connect = on_connect
 client.on_message = on_message
 client.on_disconnect = on_disconnect
 
-# Connect
 print("Connecting to broker...")
 try:
     client.connect(MQTT_BROKER, MQTT_PORT, 60)
@@ -53,7 +51,6 @@ except Exception as e:
     print(f"❌ ERROR: {e}")
     sys.exit(1)
 
-# Wait and check
 print("\n⏳ Waiting for messages (30 seconds)...")
 print("💡 Make sure mqtt_publisher.py is running!")
 print("-" * 60)

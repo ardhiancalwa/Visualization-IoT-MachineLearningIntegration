@@ -7,16 +7,10 @@ import time
 from collections import deque
 import random
 
-# =====================================================
-# KONFIGURASI
-# =====================================================
 CSV_FILE = "iot_realtime_predictions.csv"
 MAX_DATA_POINTS = 100
 UPDATE_INTERVAL = 2  # seconds
 
-# =====================================================
-# STREAMLIT PAGE CONFIG
-# =====================================================
 st.set_page_config(
     page_title="IoT Realtime Dashboard (CSV Mode)",
     page_icon="📊",
@@ -24,9 +18,6 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# =====================================================
-# INITIALIZE SESSION STATE
-# =====================================================
 if 'data_buffer' not in st.session_state:
     st.session_state.data_buffer = deque(maxlen=MAX_DATA_POINTS)
 if 'csv_data' not in st.session_state:
@@ -45,18 +36,13 @@ if 'last_update' not in st.session_state:
 if 'paused' not in st.session_state:
     st.session_state.paused = False
 
-# =====================================================
-# HELPER FUNCTIONS
-# =====================================================
 def get_next_data():
-    """Get next row from CSV in circular manner"""
     if st.session_state.csv_index >= len(st.session_state.csv_data):
         st.session_state.csv_index = 0
     
     row = st.session_state.csv_data.iloc[st.session_state.csv_index]
     st.session_state.csv_index += 1
-    
-    # Create data with current timestamp
+
     data = {
         'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
         'temperature': float(row['temperature']),
@@ -67,13 +53,11 @@ def get_next_data():
     return data
 
 def get_dataframe():
-    """Convert buffer to DataFrame"""
     if len(st.session_state.data_buffer) > 0:
         return pd.DataFrame(list(st.session_state.data_buffer))
     return pd.DataFrame()
 
 def create_gauge(value, title, range_max, color):
-    """Create gauge chart"""
     fig = go.Figure(go.Indicator(
         mode="gauge+number+delta",
         value=value,
@@ -98,7 +82,6 @@ def create_gauge(value, title, range_max, color):
     return fig
 
 def create_timeseries_chart(df):
-    """Create timeseries chart"""
     fig = make_subplots(
         rows=2, cols=1,
         subplot_titles=('Temperature (°C)', 'Humidity (%)'),
@@ -143,7 +126,6 @@ def create_timeseries_chart(df):
     return fig
 
 def create_prediction_pie(df):
-    """Create pie chart"""
     if 'prediction' in df.columns:
         prediction_counts = df['prediction'].value_counts()
         
@@ -162,15 +144,10 @@ def create_prediction_pie(df):
         return fig
     return None
 
-# =====================================================
-# MAIN DASHBOARD
-# =====================================================
 def main():
-    # Header
     st.title("🌡️ IoT Realtime Dashboard (CSV Simulation)")
     st.markdown("---")
     
-    # Sidebar
     with st.sidebar:
         st.header("⚙️ Configuration")
         st.success("🟢 CSV Mode Active")
@@ -179,7 +156,6 @@ def main():
         
         st.markdown("---")
         
-        # Statistics
         st.header("📊 Statistics")
         st.metric("Total Messages", st.session_state.total_messages)
         st.metric("Alert Count", st.session_state.alert_count)
@@ -190,8 +166,7 @@ def main():
             st.text(st.session_state.last_update.strftime("%H:%M:%S"))
         
         st.markdown("---")
-        
-        # Controls
+
         st.header("🎮 Controls")
         
         col1, col2 = st.columns(2)
@@ -213,30 +188,24 @@ def main():
         st.markdown("---")
         st.info("💡 This version simulates realtime data from CSV without MQTT")
     
-    # Add new data if not paused
     if not st.session_state.paused:
         data = get_next_data()
         st.session_state.data_buffer.append(data)
         st.session_state.total_messages += 1
         st.session_state.last_update = datetime.now()
-        
-        # Check for alerts
+
         if data['temperature'] > 30 or data['humidity'] > 70:
             st.session_state.alert_count += 1
     
-    # Get current data
     df = get_dataframe()
     
     if df.empty:
         st.warning("⏳ Initializing data...")
     else:
-        # Convert timestamp
         df['timestamp'] = pd.to_datetime(df['timestamp'])
         
-        # Latest values
         latest = df.iloc[-1]
         
-        # Row 1: Gauges
         col1, col2, col3 = st.columns(3)
         
         with col1:
@@ -258,12 +227,10 @@ def main():
             st.metric("Temperature", f"{latest['temperature']:.1f}°C")
             st.metric("Humidity", f"{latest['humidity']:.1f}%")
         
-        # Row 2: Time series
         st.markdown("---")
         st.markdown("### 📈 Historical Data")
         st.plotly_chart(create_timeseries_chart(df), use_container_width=True)
         
-        # Row 3: Stats and Pie
         col1, col2 = st.columns(2)
         
         with col1:
@@ -276,14 +243,12 @@ def main():
             if pie_fig:
                 st.plotly_chart(pie_fig, use_container_width=True)
         
-        # Row 4: Recent data
         st.markdown("---")
         st.markdown("### 📋 Recent Readings (Last 10)")
         recent_df = df.tail(10).sort_values('timestamp', ascending=False)
         recent_df['timestamp'] = recent_df['timestamp'].dt.strftime('%Y-%m-%d %H:%M:%S')
         st.dataframe(recent_df, use_container_width=True, hide_index=True)
-        
-        # Alerts
+
         if st.session_state.alert_count > 0:
             st.markdown("---")
             st.warning(f"⚠️ **Alert:** {st.session_state.alert_count} anomalies detected!")
@@ -292,7 +257,6 @@ def main():
             if not anomalies.empty:
                 st.dataframe(anomalies.tail(5), use_container_width=True, hide_index=True)
     
-    # Auto refresh
     if auto_refresh and not st.session_state.paused:
         time.sleep(refresh_speed)
         st.rerun()
