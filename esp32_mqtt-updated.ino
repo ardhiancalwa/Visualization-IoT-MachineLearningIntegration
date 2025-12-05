@@ -3,11 +3,11 @@
 #include "DHT.h"
 
 #define DHTPIN 4
-#define DHTTYPE DHT22
+#define DHTTYPE DHT11
 DHT dht(DHTPIN, DHTTYPE);
 
-const char* ssid = "realme XT";
-const char* password = "gratis123";
+const char* ssid = "LAN Trenggalek";
+const char* password = "bismillahsukses";
 const char* mqtt_server = "broker.hivemq.com";
 
 // topic untuk kirim data sensor ke Colab
@@ -26,7 +26,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
   Serial.print("Output from ML: ");
   Serial.println(msg);
 
-  if (msg.indexOf("ALERT") != -1) {
+  if (msg.indexOf("ALERT_ON") != -1) {
     Serial.println("🔥 BUZZER ON! (ML detected PANAS)");
     digitalWrite(2, HIGH);
   } else {
