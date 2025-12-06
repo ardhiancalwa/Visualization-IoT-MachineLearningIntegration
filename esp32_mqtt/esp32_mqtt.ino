@@ -6,8 +6,8 @@
 #define DHTTYPE DHT11
 DHT dht(DHTPIN, DHTTYPE);
 
-const char* ssid = "LAN Trenggalek";
-const char* password = "bismillahsukses";
+const char* ssid = "Samsung A35";
+const char* password = "12345678";
 const char* mqtt_server = "broker.hivemq.com";
 
 // topic untuk kirim data sensor ke Colab
